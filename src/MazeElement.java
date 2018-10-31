@@ -1,4 +1,5 @@
 import javax.swing.*;
+import java.awt.*;
 
 public class MazeElement extends JPanel {
 
@@ -23,6 +24,30 @@ public class MazeElement extends JPanel {
 
     public MazeElement() {super();}
 
-    public MazeElement(
+    public MazeElement(int stat){
+        super();
+        status = 0;
+        drawMyself();
+    }
+    public void drawMyself(){
 
+    }
+    public void paintComponent(Graphics g){
+        super.paintComponent(g);
+        g.drawRect(230,80,10,10);
+        g.setColor(Color.RED);
+        g.fillRect(230,80,10,10);
+    }
+    public void setNorthElement(Boolean nElement) {
+        northElement = nElement;
+    }
+    public void setSouthElement(Boolean sElement){
+        southElement = sElement;
+    }
+    public void setEastElement(Boolean eElement){
+        eastElement = eElement;
+    }
+    public void setWestElement(Boolean wElement){
+        westElement = wElement;
+    }
 }
