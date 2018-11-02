@@ -12,8 +12,9 @@ public class MazeTest extends JFrame{
     public JButton quit, generate, reset;
     public Cell cells[][];
     public Cell currCell;
-    public int currX = 0, currY = 0;
+    public int currX = 0, currY = 0, finished = 0;
     public boolean start = false;
+    private Stack<Cell> path = new Stack<>();
 
     public MazeTest () {
 
@@ -37,14 +38,25 @@ public class MazeTest extends JFrame{
 
         quit.addActionListener(e -> System.exit(0));
         reset.addActionListener(e -> Reset(cells));
-        generate.addActionListener(e -> Generate(cells));
+        generate.addActionListener(e -> {
+            if (finished == 0){
+                finished = Generate(cells);
+            }
+            else if (finished == 1) {
+                finished = Solver(cells);
+            }
+            else if (finished == 2) {
+                finished = backSolver(cells);
+            }
+        });
         controls.add(generate);
         controls.add(reset);
         controls.add(quit);
-        for (int x = 0;x<5;x++){
-            for (int y = 0; y < 5; y++){
-                cells[x][y] = new Cell();
-                panel.add(cells[x][y]);
+        for (int y = 0;y<5;y++){
+            for (int x = 0; x < 5; x++){
+                cells[y][x] = new Cell();
+                cells[y][x].setXY(x, y);
+                panel.add(cells[y][x]);
             }
         }
 
@@ -56,28 +68,24 @@ public class MazeTest extends JFrame{
 
     }
 
-    public void Generate(Cell cells[][]) {
+    public int Generate(Cell cells[][]) {
         int rnd = 0;
         if (!start){
             currCell = cells[currY][currX];
             start = true;
             currCell.status++;
             currCell.change();
+            path.push(currCell);
 
         }
         int sides[] = new int[currCell.numOptions(cells, currX, currY)];
         sides = currCell.getOptions(sides, cells, currX, currY);
-        for (int i = 0; i < currCell.numOptions(cells, currX, currY); i++){
-            //System.out.println(sides[i]);
-        }
 
         if (sides.length != 0) {
-            System.out.println(currCell.numOptions(cells, currX, currY));
             rnd = new Random().nextInt(currCell.numOptions(cells, currX, currY));
             rnd = sides[rnd];
         }
 
-        //System.out.println(rnd);
         if (rnd == 1 && currY > 0 && cells[currY-1][currX].status==0){
             currCell.North = 0;
             currCell.change();
@@ -85,7 +93,7 @@ public class MazeTest extends JFrame{
             currCell = cells[currY][currX];
             currCell.South = 0;
             currCell.status++;
-
+            path.push(currCell);
             currCell.change();
         }
         if (rnd == 2 && currX > 0 && cells[currY][currX-1].status==0){
@@ -95,6 +103,7 @@ public class MazeTest extends JFrame{
             currCell = cells[currY][currX];
             currCell.East = 0;
             currCell.status++;
+            path.push(currCell);
             currCell.change();
 
         }
@@ -105,6 +114,7 @@ public class MazeTest extends JFrame{
             currCell = cells[currY][currX];
             currCell.North = 0;
             currCell.status++;
+            path.push(currCell);
             currCell.change();
         }
         if (rnd == 4 && currX < 4 && cells[currY][currX+1].status==0){
@@ -114,12 +124,54 @@ public class MazeTest extends JFrame{
             currCell = cells[currY][currX];
             currCell.West = 0;
             currCell.status++;
+            path.push(currCell);
             currCell.change();
         }
-
-
+        if (currCell.numOptions(cells, currX, currY) == 0){
+            backGenerate(cells);
+        }
+        if (currCell.getCurrX() == 4 && currCell.getCurrY() == 4){
+            currCell.setBackground(Color.GREEN);
+            path.pop();
+            currCell = path.peek();
+            backGenerate(cells);
+        }
+        if (path.empty()){
+            start = false;
+            return 1;
+        }
+        else{return 0;}
 
     }
+
+    public void backGenerate(Cell[][] cells){
+
+        if(currCell.numOptions(cells, currX, currY) == 0){
+            path.pop();
+            if (path.empty()){return;}
+            currCell = path.peek();
+            currX = currCell.getCurrX();
+            currY = currCell.getCurrY();
+            backGenerate(cells);
+        }
+        else{
+            currX = currCell.getCurrX();
+            currY = currCell.getCurrY();
+        }
+
+    }
+
+    public int Solver(Cell[][] cells){
+
+        return 1;
+    }
+
+    public int backSolver(Cell[][] cells){
+
+        return 2;
+    }
+
+
     public void Reset(Cell[][] cells){
         for (int x = 0; x < 5; x++){
             for (int y = 0; y < 5; y++){

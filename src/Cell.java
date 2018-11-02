@@ -7,6 +7,7 @@ public class Cell extends JPanel {
     public int East = 10;
     public int West = 10;
     public int status = 0;
+    private int x, y;
 
     public Cell(){
 
@@ -18,6 +19,8 @@ public class Cell extends JPanel {
     public void change(){
         if (status == 0) { setBackground(Color.BLACK);}
         if (status == 1) { setBackground(Color.BLUE);}
+        if (status == 2) { setBackground(Color.GREEN);}
+        if (status == 3) { setBackground(Color.GRAY);}
         setBorder(BorderFactory.createMatteBorder(North, West, South, East, Color.BLACK));
     }
 
@@ -77,7 +80,20 @@ public class Cell extends JPanel {
         return retval;
     }
 
-    public void reset(){
+    public void setXY(int currX, int currY){
+        x = currX;
+        y = currY;
+    }
+
+    public int getCurrX(){
+        return x;
+    }
+
+    public int getCurrY() {
+        return y;
+    }
+
+        public void reset(){
         North = 10;
         West = 10;
         South = 10;
