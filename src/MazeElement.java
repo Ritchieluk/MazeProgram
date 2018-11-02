@@ -10,6 +10,8 @@ public class MazeElement extends JPanel {
     private int eastElement = 5;
     private int southElement = 5;
     private int westElement = 5;
+    //x and y keep the coordinates of the element relative to the matrix of all the elements
+    private int x, y;
     //the status int is what determines the elements' state. By default it will
     // initialize to 0 when the Element is constructed. 0 means it will be black
     // I have put a key below status
@@ -56,6 +58,118 @@ public class MazeElement extends JPanel {
         g.fillRect(getX()+45, getY()+45, 5, 5);
 
     }
+
+    public int[] getOptionsGen(int[] sides, MazeElement[][] elements, int currX, int currY){
+        int count = 0;
+        if (numOptionsGen(elements, currX, currY) !=  4) {
+            if (northElement != 0 && currY > 0) {
+                if (elements[currY-1][currX].getStatus() < status) {
+                    sides[count] = 1;
+                    count++;
+                }
+            }
+            if (westElement != 0 && currX > 0) {
+                if (elements[currY][currX-1].getStatus() < status) {
+                    sides[count] = 2;
+                    count++;
+                }
+            }
+            if (southElement != 0 && currY < 10 -1) {
+                if (elements[currY+1][currX].getStatus() < status) {
+                    sides[count] = 3;
+                    count++;
+                }
+            }
+            if (eastElement != 0 && currX < 10-1) {
+                if (elements[currY][currX+1].getStatus() < status) {
+                    sides[count] = 4;
+                    count++;
+                }
+            }
+        }
+        return sides;
+    }
+    public int[] getOptionsSolve(int[] sides, MazeElement[][] elements, int currX, int currY){
+        int count = 0;
+        if (numOptionsSolve(elements, currX, currY) !=  4) {
+            if (northElement == 0 && currY > 0) {
+                if (elements[currY-1][currX].getStatus() < status) {
+                    sides[count] = 1;
+                    count++;
+                }
+            }
+            if (westElement == 0 && currX > 0) {
+                if (elements[currY][currX-1].getStatus() < status) {
+                    sides[count] = 2;
+                    count++;
+                }
+            }
+            if (southElement == 0 && currY < 10 -1) {
+                if (elements[currY+1][currX].getStatus() < status) {
+                    sides[count] = 3;
+                    count++;
+                }
+            }
+            if (eastElement == 0 && currX < 10-1) {
+                if (elements[currY][currX+1].getStatus() < status) {
+                    sides[count] = 4;
+                    count++;
+                }
+            }
+        }
+        return sides;
+    }
+
+    public int numOptionsGen(MazeElement[][] elements, int currX, int currY){
+        int retval = 0;
+        if (northElement != 0 && currY > 0) {
+            if (elements[currY-1][currX].getStatus() < status) {
+                retval++;
+            }
+        }
+        if (westElement != 0 && currX > 0) {
+            if (elements[currY][currX-1].getStatus() < status) {
+                retval++;
+            }
+        }
+        if (southElement != 0 && currY < 10 -1) {
+            if (elements[currY+1][currX].getStatus() < status) {
+                retval++;
+            }
+        }
+        if (eastElement != 0 && currX < 10-1) {
+            if (elements[currY][currX+1].getStatus() < status) {
+                retval++;
+            }
+        }
+        return retval;
+    }
+    public int numOptionsSolve(MazeElement[][] elements, int currX, int currY){
+        int retval = 0;
+        if (northElement == 0 && currY > 0) {
+            if (elements[currY-1][currX].getStatus() < status) {
+                retval++;
+            }
+        }
+        if (westElement == 0 && currX > 0) {
+            if (elements[currY][currX-1].getStatus() < status) {
+                retval++;
+            }
+        }
+        if (southElement == 0 && currY < 10 -1) {
+            if (elements[currY+1][currX].getStatus() < status) {
+                retval++;
+            }
+        }
+        if (eastElement == 0 && currX < 10-1) {
+            if (elements[currY][currX+1].getStatus() < status) {
+                retval++;
+            }
+        }
+        return retval;
+    }
+
+
     public Dimension getPreferredSize(){
         return new Dimension(50,50);
     }
@@ -139,6 +253,25 @@ public class MazeElement extends JPanel {
     public void setStatus(int newStat){
         status = newStat;
     }
+    public void setXY(int currX, int currY){
+        x = currX;
+        y = currY;
+    }
+    public int getCurrX(){return x;}
+
+    public int getCurrY() {return y;}
+
+    public void incStatus() {status++;}
+
+    public void reset(){
+        northElement = 5;
+        westElement = 5;
+        southElement = 5;
+        eastElement = 5;
+        status = 0;
+        drawMyself();
+    }
+
 
 
 
