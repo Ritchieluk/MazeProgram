@@ -59,6 +59,68 @@ public class MazeElement extends JPanel {
     public Dimension getPreferredSize(){
         return new Dimension(50,50);
     }
+    public int numOptions(MazeElement[][] cells, int currX, int currY){
+        int retval = 0;
+        if (northElement != 0 && currY > 0) {
+            if (cells[currY-1][currX].status < status) {
+                retval++;
+            }
+        }
+        if (westElement != 0 && currX > 0) {
+            if (cells[currY][currX-1].status < status) {
+                retval++;
+            }
+        }
+        if (southElement != 0 && currY < 4) {
+            if (cells[currY+1][currX].status < status) {
+                retval++;
+            }
+        }
+        if (eastElement != 0 && currX < 4) {
+            if (cells[currY][currX+1].status < status) {
+                retval++;
+            }
+        }
+        return retval;
+    }
+    public int[] getOptions(int[] sides, MazeElement[][] cells, int currX, int currY){
+        int count = 0;
+        if (numOptions(cells, currX, currY) !=  4) {
+            if (northElement != 0 && currY > 0) {
+                if (cells[currY-1][currX].status < status) {
+                    sides[count] = 1;
+                    count++;
+                }
+            }
+            if (westElement != 0 && currX > 0) {
+                if (cells[currY][currX-1].status < status) {
+                    sides[count] = 2;
+                    count++;
+                }
+            }
+            if (southElement != 0 && currY < 4) {
+                if (cells[currY+1][currX].status < status) {
+                    sides[count] = 3;
+                    count++;
+                }
+            }
+            if (eastElement != 0 && currX < 4) {
+                if (cells[currY][currX+1].status < status) {
+                    sides[count] = 4;
+                    count++;
+                }
+            }
+        }
+        return sides;
+    }
+    public void reset(){
+        northElement=5;
+        southElement=5;
+        westElement=5;
+        eastElement=5;
+        status=0;
+        drawMyself();
+    }
     public void setNorth() {
         northElement = 0;
     }

@@ -9,11 +9,9 @@ public class Cell extends JPanel {
     public int status = 0;
 
     public Cell(){
-
         setPreferredSize(new Dimension(50,50));
         setBackground(Color.BLACK);
         setBorder(BorderFactory.createMatteBorder(North, West, South, East, Color.BLACK));
-
     }
     public void change(){
         if (status == 0) { setBackground(Color.BLACK);}

@@ -1,4 +1,4 @@
-import javax.swing.*;
+/*import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -36,8 +36,8 @@ public class MazeTest extends JFrame{
 
 
         quit.addActionListener(e -> System.exit(0));
-        reset.addActionListener(e -> Reset(cells));
-        generate.addActionListener(e -> Generate(cells));
+        reset.addActionListener(e -> Reset());
+        generate.addActionListener(e -> Generate());
         controls.add(generate);
         controls.add(reset);
         controls.add(quit);
@@ -56,7 +56,7 @@ public class MazeTest extends JFrame{
 
     }
 
-    public void Generate(Cell cells[][]) {
+    public void Generate() {
         int rnd = 0;
         if (!start){
             currCell = cells[currY][currX];
@@ -120,7 +120,7 @@ public class MazeTest extends JFrame{
 
 
     }
-    public void Reset(Cell[][] cells){
+    public void Reset(){
         for (int x = 0; x < 5; x++){
             for (int y = 0; y < 5; y++){
                 cells[y][x].reset();
@@ -138,3 +138,4 @@ public class MazeTest extends JFrame{
     }
 
 }
+*/
