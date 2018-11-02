@@ -24,9 +24,9 @@ public class Cell extends JPanel {
         setBorder(BorderFactory.createMatteBorder(North, West, South, East, Color.BLACK));
     }
 
-    public int[] getOptions(int[] sides, Cell[][] cells, int currX, int currY){
+    public int[] getOptionsGen(int[] sides, Cell[][] cells, int currX, int currY){
         int count = 0;
-        if (numOptions(cells, currX, currY) !=  4) {
+        if (numOptionsGen(cells, currX, currY) !=  4) {
             if (North != 0 && currY > 0) {
                 if (cells[currY-1][currX].status < status) {
                     sides[count] = 1;
@@ -54,9 +54,9 @@ public class Cell extends JPanel {
         }
         return sides;
     }
-    public int[] getOptions2(int[] sides, Cell[][] cells, int currX, int currY){
+    public int[] getOptionsSolve(int[] sides, Cell[][] cells, int currX, int currY){
         int count = 0;
-        if (numOptions2(cells, currX, currY) !=  4) {
+        if (numOptionsSolve(cells, currX, currY) !=  4) {
             if (North == 0 && currY > 0) {
                 if (cells[currY-1][currX].status < status) {
                     sides[count] = 1;
@@ -85,7 +85,7 @@ public class Cell extends JPanel {
         return sides;
     }
 
-    public int numOptions(Cell[][] cells, int currX, int currY){
+    public int numOptionsGen(Cell[][] cells, int currX, int currY){
         int retval = 0;
         if (North != 0 && currY > 0) {
             if (cells[currY-1][currX].status < status) {
@@ -109,7 +109,7 @@ public class Cell extends JPanel {
         }
         return retval;
     }
-    public int numOptions2(Cell[][] cells, int currX, int currY){
+    public int numOptionsSolve(Cell[][] cells, int currX, int currY){
         int retval = 0;
         if (North == 0 && currY > 0) {
             if (cells[currY-1][currX].status < status) {
@@ -140,13 +140,9 @@ public class Cell extends JPanel {
         y = currY;
     }
 
-    public int getCurrX(){
-        return x;
-    }
+    public int getCurrX(){return x;}
 
-    public int getCurrY() {
-        return y;
-    }
+    public int getCurrY() {return y;}
 
     public int getNorth() {return North;}
 
