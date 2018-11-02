@@ -171,7 +171,7 @@ public class MazeElement extends JPanel {
 
 
     public Dimension getPreferredSize(){
-        return new Dimension(50,50);
+        return new Dimension(20,20);
     }
     public int numOptions(MazeElement[][] cells, int currX, int currY){
         int retval = 0;
@@ -263,14 +263,6 @@ public class MazeElement extends JPanel {
 
     public void incStatus() {status++;}
 
-    public void reset(){
-        northElement = 5;
-        westElement = 5;
-        southElement = 5;
-        eastElement = 5;
-        status = 0;
-        drawMyself();
-    }
 
 
 

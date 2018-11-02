@@ -11,13 +11,13 @@ public class MazeRunner extends JFrame {
     private MazeElementDriver driver;
     private JButton generate, solve, stop;
     private JSlider speedSlider, widthSlider, heightSlider;
-    private JPanel optionsPanel, statusPanel, generationPanel, solvePanel, sliderPanel;
+    private JPanel leftSide, optionsPanel, statusPanel, generationPanel, solvePanel, sliderPanel;
     private JLabel timerLabel, statusLabel, percentLabel, speedSliderLabel, widthSliderLabel, heightSliderLabel;
     private JCheckBox showGeneration, showSolver;
     private int time, speed = 50, width = 10, height = 10;
     private String status;
     private double percent;
-    private Boolean startTime;
+    private Boolean startTime = false;
 
     private Timer timer;
 
@@ -25,7 +25,9 @@ public class MazeRunner extends JFrame {
         super("Maze Generator");
 
         generate = new JButton("Generate");
+        generate.setPreferredSize(new Dimension(75, 25));
         solve = new JButton("Solve");
+        solve.setPreferredSize(new Dimension(75, 25));
         stop = new JButton("Stop");
         speedSliderLabel = new JLabel("Speed: " + speed);
         widthSliderLabel = new JLabel("Rows: " + width);
@@ -40,7 +42,7 @@ public class MazeRunner extends JFrame {
         widthSlider = new JSlider(JSlider.HORIZONTAL, 10, 60, width);
 
         sliderPanel = new JPanel();
-        sliderPanel.setLayout(new GridLayout(6,1,0,10));
+        sliderPanel.setLayout(new GridLayout(6,1,0,30));
         sliderPanel.add(speedSliderLabel);
         sliderPanel.add(speedSlider);
         sliderPanel.add(widthSliderLabel);
@@ -54,17 +56,26 @@ public class MazeRunner extends JFrame {
         statusPanel.add(percentLabel);
         generationPanel = new JPanel();
         generationPanel.setLayout(new GridLayout(1,2,4,4));
+        generationPanel.setMaximumSize(new Dimension(200, 25));
         generationPanel.add(generate);
         generationPanel.add(showGeneration);
+        generationPanel.setPreferredSize(new Dimension(400,50));
         solvePanel = new JPanel();
         solvePanel.setLayout(new GridLayout(1,2,4,4));
+        solvePanel.setMaximumSize(new Dimension(200, 25));
         solvePanel.add(solve);
         solvePanel.add(showSolver);
+        solvePanel.setPreferredSize(new Dimension(400,50));
+
         optionsPanel = new JPanel();
-        optionsPanel.setLayout(new GridLayout(3,1,0,0));
+        optionsPanel.setLayout(new GridLayout(4,1,0,0));
+        optionsPanel.setMaximumSize(new Dimension(200, 400));
         optionsPanel.add(generationPanel);
         optionsPanel.add(solvePanel);
         optionsPanel.add(sliderPanel);
+        optionsPanel.add(stop);
+        leftSide = new JPanel();
+        leftSide.setLayout(new GridLayout(2,1,0,0));
 
         timer = new Timer(speed, e -> {
             if (startTime) {
@@ -76,18 +87,29 @@ public class MazeRunner extends JFrame {
         timer.start();
 
         MazeRunnerActionListener manager = new MazeRunnerActionListener();
+        solve.addActionListener(manager);
+        generate.addActionListener(manager);
+        stop.addActionListener(manager);
+
         MazeRunnerChangeListener changer = new MazeRunnerChangeListener();
+        speedSlider.addChangeListener(changer);
+        heightSlider.addChangeListener(changer);
+        widthSlider.addChangeListener(changer);
 
         driver = new MazeElementDriver(width,height);
+        driver.setPreferredSize(getPreferredSize());
+        leftSide.add(driver);
+        leftSide.add(statusPanel);
 
         Container container = getContentPane();
 
-        container.add(driver, BorderLayout.NORTH);
-        container.add(statusPanel, BorderLayout.SOUTH);
+        container.add(leftSide, BorderLayout.WEST);
         container.add(optionsPanel, BorderLayout.EAST);
 
-
-        setSize(width*50 + 400, height*50 + 100);
+        setSize(width*20+500, height*20 + 400);
+        //setMinimumSize(new Dimension(width*20 + 500, height*20 + 400));
+        //setMaximumSize(new Dimension(900,900));
+        pack();
         setVisible(true);
 
 
