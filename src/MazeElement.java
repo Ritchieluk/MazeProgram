@@ -1,3 +1,5 @@
+//Class: MazeElement
+//Purpose:
 import javax.swing.*;
 import java.awt.*;
 
@@ -173,7 +175,7 @@ public class MazeElement extends JPanel {
 
 
     public Dimension getPreferredSize(){
-        return new Dimension(20,20);
+        return new Dimension(15, 15);
     }
     public int numOptions(MazeElement[][] cells, int currX, int currY){
         int retval = 0;

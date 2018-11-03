@@ -1,5 +1,7 @@
 import javax.swing.*;
 import javax.swing.Timer;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,12 +15,12 @@ public class Maze extends JFrame{
     private JPanel panel, controls;
     private JButton quit, generate, reset, stop, solve;
     private JCheckBox showGeneration, showSolver;
-    private JSlider speedSlider, widthSlider, heightSlider;
-    private JLabel timerLabel, statusLabel, percentLabel;
+    private JSlider speedSlider, colSlider, rowSlider;
+    private JLabel timerLabel, statusLabel, percentLabel, speedSliderLabel, colSliderLabel, rowSliderLabel;
     private MazeElement elements[][];
     private MazeElement currElement;
-    private int currCol = 0, currRow = 0, finished = 0, rows, cols, time = 0, tilesVisited = 0, totalTiles;
-    private boolean start = false, showGenerationSwitch, showSolveSwitch, generated = false, solved = false;
+    private int currCol = 0, currRow = 0, finished = 0, rows, cols, time = 0, tilesVisited = 0, totalTiles, speed=50;
+    private boolean start = false, showGenerationSwitch, showSolveSwitch, generated = false, solved = false, running = false;
     private Stack<MazeElement> path = new Stack<>();
 
     public Maze(int rowNum, int colNum) {
@@ -26,21 +28,35 @@ public class Maze extends JFrame{
         super("Maze");
         rows = rowNum;
         cols = colNum;
-        totalTiles = cols*rows;
-        elements = new MazeElement[rows][cols];
         quit = new JButton("Quit");
         stop = new JButton("Stop");
         reset = new JButton("Reset");
         generate = new JButton("Generate");
         solve = new JButton("Solve");
         showGeneration = new JCheckBox("Show Generation");
+        showGeneration.setHorizontalAlignment(SwingUtilities.CENTER);
         showSolver = new JCheckBox("Show Solver");
+        showSolver.setHorizontalAlignment(SwingUtilities.CENTER);
         timerLabel = new JLabel("Time: 0");
+        timerLabel.setHorizontalAlignment(SwingConstants.CENTER);
         statusLabel = new JLabel("Waiting");
+        statusLabel.setHorizontalAlignment(SwingUtilities.CENTER);
         percentLabel = new JLabel("Visited: 0%");
+        percentLabel.setHorizontalAlignment(SwingUtilities.CENTER);
+        speedSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, speed );
+        rowSlider = new JSlider(JSlider.HORIZONTAL, 10, 60, rows);
+        colSlider = new JSlider(JSlider.HORIZONTAL, 10, 60, cols);
+        speedSliderLabel = new JLabel("Delay (ms): " + speed);
+        speedSliderLabel.setHorizontalAlignment(SwingUtilities.RIGHT);
+        colSliderLabel = new JLabel("Cols: " + cols);
+        colSliderLabel.setHorizontalAlignment(SwingUtilities.RIGHT);
+        rowSliderLabel = new JLabel("Rows: " + rows);
+        rowSliderLabel.setHorizontalAlignment(SwingUtilities.RIGHT);
         controls = new JPanel();
         panel = new JPanel();
-        panel.setLayout(new GridLayout(rows,cols,0,0));
+        panel = buildMaze(panel);
+
+
         addWindowListener(new WindowAdapter()
         {
             public void windowClosing(WindowEvent e)
@@ -49,7 +65,6 @@ public class Maze extends JFrame{
             }
         });
         MazeActionListener runner = new MazeActionListener();
-
         stop.addActionListener(runner);
         quit.addActionListener(runner);
         reset.addActionListener(runner);
@@ -58,7 +73,12 @@ public class Maze extends JFrame{
         showGeneration.addActionListener(runner);
         showSolver.addActionListener(runner);
 
-        controls.setLayout(new GridLayout(5,2,0,0));
+        MazeChangeListener changer = new MazeChangeListener();
+        speedSlider.addChangeListener(changer);
+        colSlider.addChangeListener(changer);
+        rowSlider.addChangeListener(changer);
+
+        controls.setLayout(new GridLayout(8,2,0,0));
         controls.add(generate);
         controls.add(showGeneration);
         controls.add(solve);
@@ -69,19 +89,34 @@ public class Maze extends JFrame{
         controls.add(timerLabel);
         controls.add(quit);
         controls.add(percentLabel);
-        for (int y = 0;y<rows;y++){
-            for (int x = 0; x < cols; x++){
-                elements[y][x] = new MazeElement();
-                elements[y][x].setXY(x, y);
-                panel.add(elements[y][x]);
-            }
-        }
+        controls.add(speedSliderLabel);
+        controls.add(speedSlider);
+        controls.add(rowSliderLabel);
+        controls.add(rowSlider);
+        controls.add(colSliderLabel);
+        controls.add(colSlider);
+
+
+
 
         add(controls, BorderLayout.EAST);
         add(panel, BorderLayout.WEST);
         pack();
         setVisible(true);
 
+    }
+    public JPanel buildMaze(JPanel inputPanel){
+        totalTiles = cols*rows;
+        elements = new MazeElement[rows][cols];
+        panel.setLayout(new GridLayout(rows,cols,0,0));
+        for (int y = 0;y<rows;y++){
+            for (int x = 0; x < cols; x++){
+                elements[y][x] = new MazeElement();
+                elements[y][x].setXY(x, y);
+                inputPanel.add(elements[y][x]);
+            }
+        }
+        return inputPanel;
     }
 
     public int Generate(MazeElement elements[][]) {
@@ -258,6 +293,12 @@ public class Maze extends JFrame{
         return 2;
     }
 
+    public void ResetMaze(){
+        panel.removeAll();
+        panel = buildMaze(panel);
+        pack();
+
+    }
 
     public void Reset(MazeElement[][] elements){
         for (int x = 0; x < cols; x++){
@@ -270,9 +311,22 @@ public class Maze extends JFrame{
         finished = 0;
         start = false;
         generated = false;
+        solved = false;
+        running = false;
         time = 0;
         tilesVisited = 0;
+        stop.setText("Stop");
+        timerLabel.setText("Time: " + time);
         percentLabel.setText("Visited: 0%");
+        try {
+            if (gameTimer.isRunning()) {
+                gameTimer.stop();
+            }
+        }
+        catch(NullPointerException f){
+            System.out.println("Pointer was Null");
+        }
+        speed = speedSlider.getValue();
     }
 
     public static void main(String argv[])
@@ -282,94 +336,106 @@ public class Maze extends JFrame{
     public class MazeActionListener implements ActionListener {
         public void actionPerformed(ActionEvent e){
             if(e.getSource()==stop){
-                gameTimer.stop();
+                try {
+                    if (gameTimer.isRunning()) {
+                        gameTimer.stop();
+                        stop.setText("Resume");
+                    }
+                    else if(running){
+                        stop.setText("Stop");
+                        gameTimer.start();
+                    }
+                }
+                catch(NullPointerException f){
+                    System.out.println("Pointer was Null");
+                }
+
             }
             else if(e.getSource()==quit){
                 dispose();
             }
             else if(e.getSource()==solve){
-                if(!generated) {
-                    while (finished == 0) {
-                        finished = Generate(elements);
-                    }
-                    generated = true;
-                }
-                if(generated && !solved) {
-                    if (showSolveSwitch) {
-                        gameTimer = new Timer(10, f -> {
-                            if (finished == 1) {
-                                time++;
-                                statusLabel.setText("Solving");
-                                timerLabel.setText("Time: " + time);
-                                finished = Solver(elements);
-                                int percent = (100 * tilesVisited) / totalTiles;
-                                System.out.println(percent);
-                                percentLabel.setText("Visited: " + percent + "%");
-                            } else if (finished == 2) {
-                                time++;
-                                timerLabel.setText("Time: " + time);
-                                finished = backSolver(elements);
-                            } else if (finished == 3) {
-                                gameTimer.stop();
-                            }
-                        });
-                        gameTimer.start();
-                        statusLabel.setText("Done");
-                        solved = true;
-
-                    } else {
-                        while (finished != 3) {
-                            if (finished == 1) {
-                                finished = Solver(elements);
-                                int percent = (100 * tilesVisited) / totalTiles;
-                                percentLabel.setText("Visited: " + percent + "%");
-                            }
-                            else if (finished == 2)
-                                finished = backSolver(elements);
+                if(!running) {
+                    System.out.println("Solving");
+                    if (!generated) {
+                        while (finished == 0) {
+                            finished = Generate(elements);
                         }
-                        solved = true;
-
+                        generated = true;
                     }
-                }
-                else if(generated && solved){
-                    Reset(elements);
-                    while (finished == 0) {
-                        finished = Generate(elements);
-                    }
-                    generated = true;
-                    if (showSolveSwitch) {
-                        gameTimer = new Timer(10, f -> {
-                            if (finished == 1) {
-                                time++;
-                                statusLabel.setText("Solving");
-                                timerLabel.setText("Time: " + time);
-                                finished = Solver(elements);
-                                int percent = (100 * tilesVisited) / totalTiles;
-                                percentLabel.setText("Visited: " + percent + "%");
-                            } else if (finished == 2) {
-                                time++;
-                                timerLabel.setText("Time: " + time);
-                                finished = backSolver(elements);
-                            } else if (finished == 3) {
-                                gameTimer.stop();
+                    if (generated && !solved) {
+                        if (showSolveSwitch) {
+                            gameTimer = new Timer(speed, f -> {
+                                if (finished == 1) {
+                                    time++;
+                                    statusLabel.setText("Solving");
+                                    timerLabel.setText("Time: " + time);
+                                    finished = Solver(elements);
+                                    int percent = (100 * tilesVisited) / totalTiles;
+                                    System.out.println(percent);
+                                    percentLabel.setText("Visited: " + percent + "%");
+                                } else if (finished == 2) {
+                                    time++;
+                                    timerLabel.setText("Time: " + time);
+                                    finished = backSolver(elements);
+                                } else if (finished == 3) {
+                                    gameTimer.stop();
+                                    statusLabel.setText("Done");
+                                    solved = true;
+                                }
+                            });
+                            gameTimer.start();
+                        } else {
+                            while (finished != 3) {
+                                if (finished == 1) {
+                                    finished = Solver(elements);
+                                    int percent = (100 * tilesVisited) / totalTiles;
+                                    percentLabel.setText("Visited: " + percent + "%");
+                                } else if (finished == 2)
+                                    finished = backSolver(elements);
                             }
-                        });
-                        gameTimer.start();
-                        statusLabel.setText("Done");
-                        solved = true;
+                            solved = true;
+                            statusLabel.setText("Done");
 
-                    } else {
-                        while (finished != 3) {
-                            if (finished == 1) {
-                                int percent = (100 * tilesVisited) / totalTiles;
-                                percentLabel.setText("Visited: " + percent + "%");
-                                finished = Solver(elements);
-                            }
-                            else if (finished == 2)
-                                finished = backSolver(elements);
                         }
-                        solved = true;
+                    } else if (generated && solved) {
+                        Reset(elements);
+                        while (finished == 0) {
+                            finished = Generate(elements);
+                        }
+                        generated = true;
+                        if (showSolveSwitch) {
+                            gameTimer = new Timer( speed, f -> {
+                                if (finished == 1) {
+                                    time++;
+                                    statusLabel.setText("Solving");
+                                    timerLabel.setText("Time: " + time);
+                                    finished = Solver(elements);
+                                    int percent = (100 * tilesVisited) / totalTiles;
+                                    percentLabel.setText("Visited: " + percent + "%");
+                                } else if (finished == 2) {
+                                    time++;
+                                    timerLabel.setText("Time: " + time);
+                                    finished = backSolver(elements);
+                                } else if (finished == 3) {
+                                    gameTimer.stop();
+                                }
+                            });
+                            gameTimer.start();
+                            statusLabel.setText("Done");
+                            solved = true;
+                        } else {
+                            while (finished != 3) {
+                                if (finished == 1) {
+                                    int percent = (100 * tilesVisited) / totalTiles;
+                                    percentLabel.setText("Visited: " + percent + "%");
+                                    finished = Solver(elements);
+                                } else if (finished == 2)
+                                    finished = backSolver(elements);
+                            }
+                            solved = true;
 
+                        }
                     }
                 }
 
@@ -381,7 +447,8 @@ public class Maze extends JFrame{
                 finished = 0;
                 Reset(elements);
                 if(showGenerationSwitch) {
-                    gameTimer = new Timer(10, f -> {
+                    running = true;
+                    gameTimer = new Timer(speed, f -> {
                         time++;
                         timerLabel.setText("Time: " + time);
                         if (finished == 0) {
@@ -389,12 +456,14 @@ public class Maze extends JFrame{
                             finished = Generate(elements);
                         }
                         if(finished == 1){
+                            generated = true;
+                            running = false;
                             statusLabel.setText("Generated");
                             gameTimer.stop();
                         }
                     });
                     gameTimer.start();
-                    generated = true;
+
                 }
                 else{
                     while(finished == 0){
@@ -416,6 +485,32 @@ public class Maze extends JFrame{
                 else
                     showSolveSwitch = false;
 
+            }
+        }
+    }
+    public class MazeChangeListener implements ChangeListener{
+        public void stateChanged(ChangeEvent e){
+            if(e.getSource() == colSlider){
+                JSlider source = (JSlider) e.getSource();
+                if(!source.getValueIsAdjusting()) {
+                    cols = source.getValue();
+                    colSliderLabel.setText("Columns: " + cols);
+                    ResetMaze();
+                }
+            }
+            else if(e.getSource() == rowSlider){
+                JSlider source = (JSlider) e.getSource();
+                if(!source.getValueIsAdjusting()) {
+                    rows = source.getValue();
+                    rowSliderLabel.setText("Rows: " + cols);
+                    ResetMaze();
+                }
+            }
+            else if(e.getSource() == speedSlider){
+                JSlider source = (JSlider) e.getSource();
+                speed = source.getValue();
+                speedSliderLabel.setText("Delay (ms): "+ speed);
+                gameTimer.setDelay(speed);
             }
         }
     }
