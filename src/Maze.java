@@ -1,3 +1,17 @@
+//================================================================
+//  Name: Maze (Program2)
+//  Author: Luke Ritchie, Ldri225@uky.edu
+//  Date: 11/2/2018
+//  Course: CS335, Dr. Brent Seales
+//  Purpose: The random generation of a four-directional maze. Can
+//              be solved. Generation is shown step by step, as
+//              can be the solution process. Is resizeable and
+//              the speed of processing can be adjusted.
+// DISCLAIMER TO GRADERS: This was mistakenly was briefly a partner
+//                          based project, only small portions
+//                          were completed together however
+//================================================================
+
 import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
@@ -8,7 +22,10 @@ import java.awt.event.ActionListener;
 import java.util.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-
+// It extends a JFrame, because this class acts as both viewer and controller
+// I know its not a strict MVC framework, I attempted to achieve that but
+// had issues getting the view panel to correctly pack into the controller
+//  frame after creating instances of it.
 public class Maze extends JFrame{
 
     private Timer gameTimer;
@@ -19,15 +36,14 @@ public class Maze extends JFrame{
     private JLabel timerLabel, statusLabel, percentLabel, speedSliderLabel, colSliderLabel, rowSliderLabel;
     private MazeElement elements[][];
     private MazeElement currElement;
-    private int currCol = 0, currRow = 0, finished = 0, rows, cols, time = 0, tilesVisited = 0, totalTiles, speed=50;
+    private int currCol = 0, currRow = 0, finished = 0, rows = 20, cols = 20, time = 0, tilesVisited = 0, totalTiles, speed=50;
     private boolean start = false, showGenerationSwitch, showSolveSwitch, generated = false, solved = false, running = false;
     private Stack<MazeElement> path = new Stack<>();
-
-    public Maze(int rowNum, int colNum) {
+    // Class Maze:
+    // Purpose: Acts as both a controller and a viewer.
+    public Maze() {
 
         super("Maze");
-        rows = rowNum;
-        cols = colNum;
         quit = new JButton("Quit");
         stop = new JButton("Stop");
         reset = new JButton("Reset");
@@ -48,7 +64,7 @@ public class Maze extends JFrame{
         colSlider = new JSlider(JSlider.HORIZONTAL, 10, 60, cols);
         speedSliderLabel = new JLabel("Delay (ms): " + speed);
         speedSliderLabel.setHorizontalAlignment(SwingUtilities.RIGHT);
-        colSliderLabel = new JLabel("Cols: " + cols);
+        colSliderLabel = new JLabel("Columns: " + cols);
         colSliderLabel.setHorizontalAlignment(SwingUtilities.RIGHT);
         rowSliderLabel = new JLabel("Rows: " + rows);
         rowSliderLabel.setHorizontalAlignment(SwingUtilities.RIGHT);
@@ -105,6 +121,7 @@ public class Maze extends JFrame{
         setVisible(true);
 
     }
+    // buildMaze constructs the JPanel that the maze sits in.
     public JPanel buildMaze(JPanel inputPanel){
         totalTiles = cols*rows;
         elements = new MazeElement[rows][cols];
@@ -118,7 +135,8 @@ public class Maze extends JFrame{
         }
         return inputPanel;
     }
-
+    // Generate is the basic logic of generation, when it is done it increments
+    // the finished int, which is how the program knows what state it is currently on
     public int Generate(MazeElement elements[][]) {
         int rnd = 0;
         if (!start){
@@ -194,7 +212,8 @@ public class Maze extends JFrame{
         else{return 0;}
 
     }
-
+    // Generate calls backGenerate whenever it hits a dead end, and
+    // runs back through the stack until it has an available generation move
     public void backGenerate(MazeElement[][] elements){
 
         if(currElement.numOptionsGen(elements, currRow, currCol, rows, cols) == 0){
@@ -212,11 +231,11 @@ public class Maze extends JFrame{
         }
 
     }
-
+    // Solver is the generate function for solving the maze
+    // it uses a stack to run through a depth first search functionality
     public int Solver(MazeElement[][] elements){
 
         tilesVisited++;
-        System.out.println(tilesVisited);
         int rnd = 0;
         if (!start){
             currElement = elements[currRow][currCol];
@@ -275,7 +294,7 @@ public class Maze extends JFrame{
         return 1;
 
     }
-
+    // backSolver is called by Solver and the timers whenever it needs to backtrack
     public int backSolver(MazeElement[][] elements){
         if(currElement.numOptionsSolve(elements, currRow, currCol, rows, cols) == 0){
             currElement.incStatus();
@@ -292,14 +311,17 @@ public class Maze extends JFrame{
         }
         return 2;
     }
-
+    // ResetMaze is only used when the columns or rows have changed, due to the
+    // expensive nature of its calls.
     public void ResetMaze(){
         panel.removeAll();
         panel = buildMaze(panel);
         pack();
 
     }
-
+    // Reset is the basic restarting function that is used in the majority of cases
+    // needed to reset the maze. If there is no dimensional change, Reset is the
+    // function to call
     public void Reset(MazeElement[][] elements){
         for (int x = 0; x < cols; x++){
             for (int y = 0; y < rows; y++){
@@ -328,11 +350,14 @@ public class Maze extends JFrame{
         }
         speed = speedSlider.getValue();
     }
-
+    // the main just starts the maze
     public static void main(String argv[])
     {
-        new Maze(22, 22);
+        new Maze();
     }
+    // The MazeActionListener gives logic to each of the buttons
+    // and allows the Generate/Solver functions to be correctly
+    // called and implemented
     public class MazeActionListener implements ActionListener {
         public void actionPerformed(ActionEvent e){
             if(e.getSource()==stop){
@@ -356,7 +381,6 @@ public class Maze extends JFrame{
             }
             else if(e.getSource()==solve){
                 if(!running) {
-                    System.out.println("Solving");
                     if (!generated) {
                         while (finished == 0) {
                             finished = Generate(elements);
@@ -372,7 +396,6 @@ public class Maze extends JFrame{
                                     timerLabel.setText("Time: " + time);
                                     finished = Solver(elements);
                                     int percent = (100 * tilesVisited) / totalTiles;
-                                    System.out.println(percent);
                                     percentLabel.setText("Visited: " + percent + "%");
                                 } else if (finished == 2) {
                                     time++;
@@ -488,21 +511,28 @@ public class Maze extends JFrame{
             }
         }
     }
+    // The MazeChangeListener gives logic to the sliders,
+    // causes the board to reset when the dimensions are changed
+    // and dynamically changes the speed as the slider is moved
     public class MazeChangeListener implements ChangeListener{
         public void stateChanged(ChangeEvent e){
             if(e.getSource() == colSlider){
+                Reset(elements);
                 JSlider source = (JSlider) e.getSource();
-                if(!source.getValueIsAdjusting()) {
+                colSliderLabel.setText("Columns: " + source.getValue());
+                if (!source.getValueIsAdjusting()) {
                     cols = source.getValue();
                     colSliderLabel.setText("Columns: " + cols);
                     ResetMaze();
                 }
             }
             else if(e.getSource() == rowSlider){
+                Reset(elements);
                 JSlider source = (JSlider) e.getSource();
-                if(!source.getValueIsAdjusting()) {
+                rowSliderLabel.setText("Rows: " + source.getValue());
+                if (!source.getValueIsAdjusting()) {
                     rows = source.getValue();
-                    rowSliderLabel.setText("Rows: " + cols);
+                    rowSliderLabel.setText("Rows: " + rows);
                     ResetMaze();
                 }
             }
