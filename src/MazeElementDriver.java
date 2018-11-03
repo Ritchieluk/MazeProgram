@@ -7,7 +7,7 @@ public class MazeElementDriver extends JPanel {
     private int width;
     private int height;
     private MazeElement currElement;
-    private int currX = 0, currY = 0, size = 10;
+    private int currX = 0, currY = 0, finished = 0, size = 10;
     private MazeElement tiles[][];
     private Stack<MazeElement> path = new Stack<>();
 
@@ -17,35 +17,37 @@ public class MazeElementDriver extends JPanel {
         width = w;
         height = h;
         setupTiles();
-
-
+        //setPreferredSize(getPreferredSize());
+        setBackground(Color.BLACK);
 
     }
     public void setupTiles(){
         tiles = new MazeElement[width][height];
-        setLayout(new GridLayout(width,height,0,0));
+        setLayout(new GridLayout(height, width,0,0));
 
         for(int i = 0; i<width; i++) {
             for (int j = 0; j < height; j++){
                 tiles[i][j] = new MazeElement();
-                tiles[i][j].setPreferredSize(tiles[i][j].getPreferredSize());
+                tiles[i][j].setXY(j,i);
+                //System.out.println("We've reached this point");
+                //tiles[i][j].setPreferredSize(tiles[i][j].getPreferredSize());
                 add(tiles[i][j]);
             }
         }
-        setPreferredSize(getPreferredSize());
+
     }
-    public int generate() {
+    public void generate() {
         int rnd = 0;
         currElement = tiles[currY][currX];
         currElement.incStatus();
         currElement.drawMyself();
         path.push(currElement);
 
-        int sides[] = new int[currElement.numOptionsGen(tiles, currX, currY)];
-        sides = currElement.getOptionsGen(sides, tiles, currX, currY);
+        int sides[] = new int[currElement.numOptionsGen(tiles, currX, currY, width, height)];
+        sides = currElement.getOptionsGen(sides, tiles, currX, currY, width, height);
 
         if (sides.length != 0) {
-            rnd = new Random().nextInt(currElement.numOptionsGen(tiles, currX, currY));
+            rnd = new Random().nextInt(currElement.numOptionsGen(tiles, currX, currY, width, height));
             rnd = sides[rnd];
         }
 
@@ -96,19 +98,19 @@ public class MazeElementDriver extends JPanel {
             currElement = path.peek();
             backGenerate();
         }
-        if (currElement.numOptionsGen(tiles, currX, currY) == 0){
+        if (currElement.numOptionsGen(tiles, currX, currY, width, height) == 0){
             backGenerate();
         }
         if (path.empty()){
-            return 1;
+            finished=1;
         }
-        else{return 0;}
+        else{finished = 0;}
 
     }
 
     public void backGenerate(){
 
-        if(currElement.numOptionsGen(tiles, currX, currY) == 0){
+        if(currElement.numOptionsGen(tiles, currX, currY, width, height) == 0){
             if (path.empty()){return;}
             path.pop();
             if (path.empty()){return;}
@@ -124,18 +126,18 @@ public class MazeElementDriver extends JPanel {
 
     }
 
-    public int solver(){
+    public void solver(){
         int rnd = 0;
         currElement = tiles[currY][currX];
         currElement.incStatus();
         currElement.drawMyself();
         path.push(currElement);
-        int sides[] = new int[currElement.numOptionsSolve(tiles, currX, currY)];
+        int sides[] = new int[currElement.numOptionsSolve(tiles, currX, currY, width, height)];
 
-        sides = currElement.getOptionsSolve(sides, tiles, currX, currY);
+        sides = currElement.getOptionsSolve(sides, tiles, currX, currY, width, height);
 
         if (sides.length != 0) {
-            rnd = new Random().nextInt(currElement.numOptionsSolve(tiles, currX, currY));
+            rnd = new Random().nextInt(currElement.numOptionsSolve(tiles, currX, currY, width, height));
             rnd = sides[rnd];
         }
 
@@ -171,18 +173,18 @@ public class MazeElementDriver extends JPanel {
         }
         if (currElement.getCurrX() == size -1 && currElement.getCurrY() == size-1){
             currElement.setBackground(Color.YELLOW);
-            return 3;
+            finished= 3;
         }
-        if (currElement.numOptionsSolve(tiles, currX, currY) == 0){
-            return 2;
+        if (currElement.numOptionsSolve(tiles, currX, currY, width, height) == 0){
+            finished= 2;
         }
 
-        return 1;
+        finished= 1;
 
     }
 
-    public int backSolver(){
-        if(currElement.numOptionsSolve(tiles, currX, currY) == 0){
+    public void backSolver(){
+        if(currElement.numOptionsSolve(tiles, currX, currY, width, height) == 0){
             currElement.incStatus();
             currElement.drawMyself();
             path.pop();
@@ -193,18 +195,42 @@ public class MazeElementDriver extends JPanel {
         else{
             currX = currElement.getCurrX();
             currY = currElement.getCurrY();
-            return 1;
+            finished=1;
         }
-        return 2;
+        finished= 2;
+    }
+    public void Reset(){
+        for(int i = 0; i < width; i++){
+            for(int j = 0; j<height; j++){
+                tiles[i][j].Reset();
+            }
+        }
+        finished = 0;
+        currY = 0;
+        currX = 0;
     }
     public Dimension getPreferredSize(){
         return new Dimension(width*20, height*20);
+    }
+    public int getFinished(){
+        return finished;
     }
     public void reset(){
         setupTiles();
         currX = 0;
         currY = 0;
     }
-
+    public void setWidth(int w){
+        width = w;
+    }
+    public int getWidth(){
+        return width;
+    }
+    public void setHeight(int h){
+        height = h;
+    }
+    public int getHeight(){
+        return height;
+    }
 }
 

@@ -2,6 +2,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.JMenuBar;
+import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -17,7 +18,7 @@ public class MazeRunner extends JFrame {
     private int time, speed = 50, width = 10, height = 10;
     private String status;
     private double percent;
-    private Boolean startTime = false;
+    private Boolean startTime = false, generateSwitch = false, solveSwitch = false, showGenerationSwitch = false, showSolveSwitch = false;
 
     private Timer timer;
 
@@ -62,25 +63,36 @@ public class MazeRunner extends JFrame {
         generationPanel.setPreferredSize(new Dimension(400,50));
         solvePanel = new JPanel();
         solvePanel.setLayout(new GridLayout(1,2,4,4));
-        solvePanel.setMaximumSize(new Dimension(200, 25));
+        //solvePanel.setMaximumSize(new Dimension(200, 25));
         solvePanel.add(solve);
         solvePanel.add(showSolver);
-        solvePanel.setPreferredSize(new Dimension(400,50));
+        //solvePanel.setPreferredSize(new Dimension(400,50));
 
         optionsPanel = new JPanel();
-        optionsPanel.setLayout(new GridLayout(4,1,0,0));
-        optionsPanel.setMaximumSize(new Dimension(200, 400));
+        optionsPanel.setLayout(new GridLayout(5,1,0,0));
+        //optionsPanel.setMaximumSize(new Dimension(200, 400));
         optionsPanel.add(generationPanel);
         optionsPanel.add(solvePanel);
         optionsPanel.add(sliderPanel);
+        optionsPanel.add(statusPanel);
         optionsPanel.add(stop);
-        leftSide = new JPanel();
-        leftSide.setLayout(new GridLayout(2,1,0,0));
 
         timer = new Timer(speed, e -> {
             if (startTime) {
                 time++;
                 timerLabel.setText("Time: " + time);
+                if (driver.getFinished() == 0){
+                    driver.generate();
+                }
+                else if (driver.getFinished() == 1) {
+                    driver.solver();
+                }
+                else if (driver.getFinished() == 2) {
+                    driver.backSolver();
+                }
+                else if (driver.getFinished() == 3) {
+                    startTime = false;
+                }
             }
         });
 
@@ -90,6 +102,8 @@ public class MazeRunner extends JFrame {
         solve.addActionListener(manager);
         generate.addActionListener(manager);
         stop.addActionListener(manager);
+        showSolver.addActionListener(manager);
+        showGeneration.addActionListener(manager);
 
         MazeRunnerChangeListener changer = new MazeRunnerChangeListener();
         speedSlider.addChangeListener(changer);
@@ -97,19 +111,19 @@ public class MazeRunner extends JFrame {
         widthSlider.addChangeListener(changer);
 
         driver = new MazeElementDriver(width,height);
-        driver.setPreferredSize(getPreferredSize());
-        leftSide.add(driver);
-        leftSide.add(statusPanel);
+        //driver.setPreferredSize(getPreferredSize());
 
         Container container = getContentPane();
 
-        container.add(leftSide, BorderLayout.WEST);
-        container.add(optionsPanel, BorderLayout.EAST);
 
-        setSize(width*20+500, height*20 + 400);
+        container.setLayout(new GridLayout(1,2,0,0));
+        add(driver, BorderLayout.CENTER);
+        container.add(optionsPanel, BorderLayout.EAST);
+        pack();
+        //setSize(width*20+400, height*20 + 200);
         //setMinimumSize(new Dimension(width*20 + 500, height*20 + 400));
         //setMaximumSize(new Dimension(900,900));
-        pack();
+
         setVisible(true);
 
 
@@ -129,11 +143,64 @@ public class MazeRunner extends JFrame {
     }
     public class MazeRunnerActionListener implements ActionListener{
         public void actionPerformed(ActionEvent e){
+            if(e.getSource()==stop){
+                startTime = false;
+            }
+            else if(e.getSource()==solve){
+                startTime = true;
+
+            }
+            else if(e.getSource()==generate){
+                startTime = true;
+            }
+            else if(e.getSource()==showGeneration){
+                if(showGeneration.isSelected())
+                    showGenerationSwitch = true;
+                else
+                    showGenerationSwitch = false;
+            }
+            else if(e.getSource()==showSolver){
+                if(showSolver.isSelected())
+                    showSolveSwitch = true;
+                else
+                    showSolveSwitch = false;
+
+            }
+            else
+                System.out.println("Unknown Action Detected");
 
         }
     }
     public class MazeRunnerChangeListener implements ChangeListener{
         public void stateChanged(ChangeEvent e){
+            if(e.getSource()==widthSlider){
+                JSlider source = (JSlider) e.getSource();
+                if(!source.getValueIsAdjusting()){
+                    width = source.getValue();
+                    driver.setWidth(width);
+                    widthSliderLabel.setText("Rows: " + width);
+                    driver.reset();
+                }
+
+            }
+            else if(e.getSource()==heightSlider){
+                JSlider source = (JSlider) e.getSource();
+                if(!source.getValueIsAdjusting()){
+                    height = source.getValue();
+                    driver.setHeight(height);
+                    heightSliderLabel.setText("Columns: "+ height);
+                    driver.Reset();
+                }
+
+            }
+            else if(e.getSource()==speedSlider){
+                JSlider source = (JSlider) e.getSource();
+                speed = source.getValue();
+                speedSliderLabel.setText("Speed: "+ speed);
+            }
+            else
+                System.out.println("Unknown Change Detected");
+
 
         }
     }
